@@ -3,10 +3,11 @@ using System.Text;
 using FluentAssertions;
 using FsCheck;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Email.Tests;
 
-public class EncryptionTests
+public class EncryptionTests(ITestOutputHelper testOutputHelper)
 {
     private readonly Encryption _encryption = new(
         new Configuration(Key: ConvertKey("Advent Of Craft"), Iv: ConvertIv("2024"))
@@ -31,6 +32,14 @@ public class EncryptionTests
                     _encryption.Encrypt(plainText)
                 ) == plainText
         ).QuickCheckThrowOnFailure();
+
+    [Fact]
+    public void Decrypt_An_Email()
+    {
+        var decryptedContent = _encryption.Decrypt(FileUtils.LoadFile("EncryptedEmail.txt"));
+        decryptedContent.Should().NotBeNullOrEmpty();
+        testOutputHelper.WriteLine(decryptedContent);
+    }
 
     private static string ConvertKey(string key)
         => Convert.ToBase64String(
